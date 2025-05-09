@@ -1,0 +1,228 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% block header %}
+<h2>Verify Your Identity</h2>
+<p class="text-muted">Enter the verification code sent to your email</p>
+{% endblock %}
+
+{% block content %}
+<style>
+    .otp-container {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: 2rem 0;
+    }
+    
+    .otp-input {
+        width: 60px;
+        height: 70px;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .otp-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(244, 182, 9, 0.2);
+        transform: translateY(-3px);
+    }
+    
+    .otp-input.filled {
+        border-color: var(--accent-color);
+        background-color: rgba(0, 108, 95, 0.05);
+        animation: pulse 0.5s ease;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .resend-link {
+        cursor: pointer;
+        color: var(--accent-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .resend-link:hover {
+        text-decoration: underline;
+    }
+    
+    .countdown {
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+    @media (max-width: 576px) {
+    .otp-container {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .otp-input {
+        width: 45px;
+        height: 55px;
+        font-size: 1.6rem;
+        border-radius: 6px;
+    }
+
+    .btn {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+        text-align: center;
+    }
+
+    p.text-muted {
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .auth-footer {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .countdown {
+        font-size: 0.95rem;
+    }
+}
+</style>
+
+<form method="post" class="mb-4" id="otp-form">
+    {% csrf_token %}
+    
+    <div class="otp-container" id="otp-container">
+        <!-- OTP inputs will be generated here -->
+    </div>
+    
+    <input type="hidden" name="otp" id="otp-complete">
+    
+    <div class="text-center mb-4">
+        <small class="text-muted">Code expires in <span class="countdown" id="countdown">5:00</span></small>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-lg w-100 py-2" id="verify-btn" disabled>
+        Verify & Continue
+    </button>
+</form>
+
+<div class="auth-footer text-center">
+    <a href="{% url 'login_with_otp' %}" class="resend-link" id="resend-link">
+        Didn't receive code? Resend
+    </a>
+    <span id="resend-timer" class="d-none"> (wait <span id="resend-countdown">30</span>s)</span>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const OTP_LENGTH = 6; // Change this to match your OTP length
+    const otpContainer = document.getElementById('otp-container');
+    const otpComplete = document.getElementById('otp-complete');
+    const verifyBtn = document.getElementById('verify-btn');
+    const resendLink = document.getElementById('resend-link');
+    const resendTimer = document.getElementById('resend-timer');
+    const resendCountdown = document.getElementById('resend-countdown');
+    
+    // Generate OTP input squares
+    for (let i = 0; i < OTP_LENGTH; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 1;
+        input.className = 'otp-input form-control-lg';
+        input.dataset.index = i;
+        input.inputMode = 'numeric';
+        input.pattern = '[0-9]*';
+        
+        // Handle input
+        input.addEventListener('input', function(e) {
+            if (this.value.length === 1) {
+                this.classList.add('filled');
+                if (i < OTP_LENGTH - 1) {
+                    this.nextElementSibling.focus();
+                }
+                updateOTPValue();
+            }
+        });
+        
+        // Handle backspace
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value.length === 0 && i > 0) {
+                this.previousElementSibling.focus();
+                this.previousElementSibling.value = '';
+                this.previousElementSibling.classList.remove('filled');
+                updateOTPValue();
+            }
+        });
+        
+        // Handle paste
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pasteData = e.clipboardData.getData('text/plain').trim();
+            if (/^\d+$/.test(pasteData) && pasteData.length === OTP_LENGTH) {
+                const inputs = otpContainer.querySelectorAll('.otp-input');
+                for (let j = 0; j < OTP_LENGTH; j++) {
+                    inputs[j].value = pasteData[j];
+                    inputs[j].classList.add('filled');
+                }
+                updateOTPValue();
+                inputs[OTP_LENGTH-1].focus();
+            }
+        });
+        
+        otpContainer.appendChild(input);
+    }
+    
+    // Update the hidden OTP value
+    function updateOTPValue() {
+        const inputs = otpContainer.querySelectorAll('.otp-input');
+        let otpValue = '';
+        inputs.forEach(input => {
+            otpValue += input.value;
+        });
+        otpComplete.value = otpValue;
+        verifyBtn.disabled = otpValue.length !== OTP_LENGTH;
+    }
+    
+    // Countdown timer
+    let time = 300; // 5 minutes in seconds
+    const countdown = setInterval(() => {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        document.getElementById('countdown').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        time--;
+        if (time < 0) {
+            clearInterval(countdown);
+            document.getElementById('countdown').textContent = 'expired';
+            document.getElementById('countdown').style.color = 'var(--bs-danger)';
+        }
+    }, 1000);
+    
+    // Resend OTP timer (30 seconds)
+    let resendTime = 30;
+    const resendInterval = setInterval(() => {
+        resendCountdown.textContent = resendTime;
+        resendTime--;
+        if (resendTime < 0) {
+            clearInterval(resendInterval);
+            resendTimer.classList.add('d-none');
+        }
+    }, 1000);
+    
+    // Focus first input on load
+    otpContainer.querySelector('.otp-input').focus();
+});
+</script>
+{% endblock %}

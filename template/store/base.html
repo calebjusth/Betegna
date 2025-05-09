@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betegna Boutique - Premium Ethiopian Fashion & Coffee</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="shortcut icon" href="{% static 'images/logo/fav.png' %}" type="image/png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    
+</head>
+<body>
+    <div id="search-results-container" class="search-results-container">
+        <div class="search-results"></div>
+    </div>
+    <!-- Header with Navigation -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+            <a href="/">
+                <img src="{% static 'images/logo/main-logo.png' %}" alt="Logo" width="150" class="img-logo" height="auto">
+            </a>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/products">Products</a>
+                <div class="dropdown">
+                    <a class="dropdown-toggle">Collections <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu collections-dropdown">
+                        <div class="collection-search">
+                            <input type="text" id="collection-search" placeholder="Search collections...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="collection-list">
+                            {% for value, label in product_categories %}
+                                <a href="{% url 'products_by_category' category_slug=value|lower %}">{{ label }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'about' %}">About</a>
+                <a href="{% url 'category_list' %}"> FAQ</a>
+            </nav>
+            
+            <div class="nav-actions">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Search products..." autocomplete="off">
+                    <i class="fas fa-search" id="search-icon"></i>
+                </div>
+                
+                <div class="language-toggle">
+                    <i class="fas fa-globe"></i>
+                    <span>EN</span>
+                </div>
+                
+                <div class="user-dropdown">
+                    <div class="user-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        {% if user.is_authenticated %}
+                            <a ><i class="fas fa-user-circle"></i> My Account</a>
+                            <a><i class="fas fa-heart"></i> Wishlist</a>
+                            <a><i class="fas fa-box"></i> My Orders</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        {% else %}
+                            <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+                            <a href="{% url 'signup' %}"><i class="fas fa-user-plus"></i> Register</a>
+                            <div class="dropdown-divider"></div>
+                            <a ><i class="fas fa-question-circle"></i> Help</a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="cart-icon">
+                    <a href="{%  url 'cart' %}">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                </div>
+                
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+    </header>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span class="icon">&#9432;</span> <!-- info icon -->
+            {{ message }}
+            <span class="close" onclick="this.parentElement.style.display='none';">&times;</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <style>
+        .currency-switcher {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.currency-selector {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+}
+        .messages {
+    margin-top: 20px;
+}
+
+.alert {
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.alert .icon {
+    font-size: 18px;
+}
+
+.alert .close {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+}
+
+/* Color styles based on tags */
+.alert-success {
+    background-color: #e6f9f0;
+    color: #2e7d52;
+    border-left: 5px solid #2e7d52;
+}
+
+.alert-error,
+.alert-danger {
+    background-color: #fdecea;
+    color: #b33630;
+    border-left: 5px solid #b33630;
+}
+
+.alert-warning {
+    background-color: #fff4e5;
+    color: #b26a00;
+    border-left: 5px solid #b26a00;
+}
+
+.alert-info {
+    background-color: #e6f0fa;
+    color: #2f5db3;
+    border-left: 5px solid #2f5db3;
+}
+
+    </style>
+    
+    <!-- Mobile Navigation -->
+    <div class="overlay"></div>
+    <div class="mobile-nav">
+        
+            <a href="/">
+                <img src="{% static 'images/logo/main-logo.png' %}" alt="Logo" width="150" class="img-logo" height="auto">
+            </a>
+            
+        <div class="mobile-nav-links">
+            <a href="/"><i class="fas fa-home"></i> Home</a>
+            <a href="/products"><i class="fas fa-tshirt"></i> Fashion</a>
+            <a href="/coffee"><i class="fas fa-coffee"></i> Coffee</a>
+            <a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About</a>
+            <a href="{% url 'category_list' %}"><i class="fas fa-envelope"></i> FAQ</a>
+            <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register"><i class="fas fa-user-plus"></i> Register</a>
+        </div>
+        
+        <div class="language-toggle-mobile">
+            <i class="fas fa-globe"></i>
+            <select>
+                <option value="en">English</option>
+                <option value="am">አማርኛ</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <!-- Support Button -->
+    <div class="support-btn">
+        <i class="fab fa-telegram"></i>
+        <span>Need Help?</span>
+    </div>
+    
+    <!-- Footer -->
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-about">
+                <div class="footer-logo">
+                <a href="/">
+                    <img src="{% static 'images/logo/main-logo.png' %}" alt="Logo" width="250" class="img-logo" height="auto">
+                </a>
+            </div>
+                <p>Premium Ethiopian fashion and coffee. Bringing authentic Ethiopian culture to the world through quality products.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Shop</a></li>
+                    <li><a href="{% url 'about' %}">About Us</a></li>
+                    
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="{% url 'category_list' %}">FAQ</a></li>
+                    <li><a href="/shipping">Shipping Policy</a></li>
+                    <li><a href="{% url 'return' %}">Return Policy</a></li>
+                    <li><a href="{% url 'privacy' %}">Privacy Policy</a></li>
+                    <li><a href="{% url 'terms' %}">Terms of Service</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-newsletter">
+                <h3>Newsletter</h3>
+                <p>Subscribe to get updates on new arrivals and special offers.</p>
+                <input type="email" placeholder="Your email address">
+                <button>Subscribe</button>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; <span id="year"></span> Betegna Boutique. All rights reserved. | Developed by Tech-dazzle.com Call us <a style="color: white;" href="tel:+251964564598">0964564598</a></p>
+            <script>
+                document.getElementById('year').textContent = new Date().getFullYear();
+            </script>
+        </div>
+    </footer>
+    
+    <script>
+        // Mobile Navigation Toggle
+        const hamburger = document.querySelector('.hamburger');
+        const mobileNav = document.querySelector('.mobile-nav');
+        const overlay = document.querySelector('.overlay');
+        
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('open');
+            mobileNav.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : 'auto';
+        });
+        
+        overlay.addEventListener('click', () => {
+            hamburger.classList.remove('open');
+            mobileNav.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Language Toggle
+        const languageToggle = document.querySelector('.language-toggle');
+        if (languageToggle) {
+            languageToggle.addEventListener('click', () => {
+                const currentLang = languageToggle.querySelector('span');
+                currentLang.textContent = currentLang.textContent === 'EN' ? 'AM' : 'EN';
+            });
+        }
+        
+        // Support Button Animation
+        const supportBtn = document.querySelector('.support-btn');
+        
+        // Show after 5 seconds or when scrolled to bottom
+        setTimeout(() => {
+            supportBtn.classList.add('visible');
+        }, 5000);
+        
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                supportBtn.classList.add('visible');
+            }
+        });
+        
+        supportBtn.addEventListener('click', () => {
+            // Open support chat or contact form
+            window.location.href = "/contact";
+        });
+        
+        // Close mobile menu when clicking on links
+        const mobileLinks = document.querySelectorAll('.mobile-nav-links a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('open');
+                mobileNav.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+        });
+        
+        // Product card animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const productCards = document.querySelectorAll('.product-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            productCards.forEach(card => {
+                card.style.opacity = 0;
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s, transform 0.5s';
+                observer.observe(card);
+            });
+        });
+        // Collections dropdown search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const collectionSearch = document.getElementById('collection-search');
+    if (collectionSearch) {
+        collectionSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const collectionItems = document.querySelectorAll('.collection-list a');
+            
+            collectionItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+        
+        if (!e.target.closest('.user-dropdown')) {
+            document.querySelectorAll('.dropdown-content').forEach(content => {
+                content.style.display = 'none';
+            });
+        }
+    });
+});
+
+
+
+    </script>
+    <script>
+        // Cart notification functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize cart count from server
+        fetch('/cart/count/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.cart_count !== undefined) {
+                const cartCount = document.querySelector('.cart-count');
+                if(cartCount) {
+                    cartCount.textContent = data.cart_count;
+                }
+            }
+        });
+
+        // Add to cart buttons
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+                
+                fetch(`/cart/add/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        // Update cart count in navbar
+                        const cartCount = document.querySelector('.cart-count');
+                        if(cartCount) {
+                            cartCount.textContent = data.cart_count;
+                        }
+                        
+                        // Set cart count in sessionStorage for persistence
+                        sessionStorage.setItem('cartCount', data.cart_count);
+                        
+                        // Show notification
+                        const notification = document.getElementById('cartNotification');
+                        notification.querySelector('span').textContent = data.message;
+                        notification.classList.add('show');
+                        
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                        }, 3000);
+                    }
+                });
+            });
+        });
+
+        // Check sessionStorage for cart count on page load
+        const storedCartCount = sessionStorage.getItem('cartCount');
+        if(storedCartCount) {
+            const cartCount = document.querySelector('.cart-count');
+            if(cartCount) {
+                cartCount.textContent = storedCartCount;
+            }
+        }
+    });
+    </script>
+
+<script src="{% static 'js/base.js' %}"></script>
+</body>
+</html>

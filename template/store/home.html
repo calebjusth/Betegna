@@ -1,0 +1,958 @@
+{% extends "./base.html" %}
+{% load static %}
+{% load extras %}
+{% block content %}
+{% load humanize %}
+{% load i18n %}
+
+<style>
+    :root {
+        --primary-color: #f4b609; /* Primary brand yellow - used sparingly for accents */
+        --primary-light: #f8d675;
+        --primary-dark: #e6a908;
+        --secondary-color: #003932; /* Dark teal - primary background color */
+        --secondary-light: #006c5f; /* Lighter teal */
+        --accent-color: #d4af37; /* Gold accent */
+        --text-dark: #333333;
+        --text-medium: #555555;
+        --text-light2: #777777;
+        --bg-light: #f9f9f9;
+        --white: #ffffff;
+        --black: #000000;
+    }
+
+    /* Improved color application */
+    body {
+        color: var(--text-dark);
+        background-color: var(--white);
+    }
+
+    /* Hero Section - Side by side layout */
+    .hero {
+        display: flex;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem;
+        background-color: var(--secondary-color); /* Dark teal background */
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-content {
+        flex: 1;
+        padding: 2rem;
+        z-index: 2;
+    }
+
+    .hero-image {
+        flex: 1;
+        position: relative;
+        height: 100%;
+        min-height: 400px;
+    }
+
+    .hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    }
+
+    .hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        color: var(--white);
+        line-height: 1.2;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 2rem;
+        max-width: 500px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(244, 182, 9, 0.4);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        margin-left: 1rem;
+    }
+
+    .btn-outline:hover {
+        background-color: rgba(244, 182, 9, 0.1);
+    }
+
+    /* Section Titles */
+    .section-title {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 0 1rem;
+    }
+
+    .section-title h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        color: var(--secondary-color);
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: var(--primary-color);
+    }
+
+    /* Side-scrolling sections */
+    .scroll-section {
+        padding: 4rem 0;
+        position: relative;
+        background-color: var(--bg-light);
+    }
+
+    .scroll-container {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 2rem;
+        padding: 1rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scroll-item {
+        flex: 0 0 auto;
+        width: 280px;
+        scroll-snap-align: start;
+    }
+
+    /* Category/Product Cards */
+    .card {
+        background: var(--white);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        height: 100%;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        border-color: rgba(244, 182, 9, 0.2);
+    }
+
+    .card-img {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+        background-color: var(--bg-light);
+    }
+
+    .card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+
+    .card:hover .card-img img {
+        transform: scale(1.05);
+    }
+
+    .card-info {
+        padding: 1.5rem;
+    }
+
+    .card-info h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: var(--secondary-color);
+    }
+
+    .card-info p {
+        color: var(--text-light2);
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        z-index: 1;
+    }
+
+    /* New Collections Section */
+    .new-collections {
+        padding: 4rem 0;
+        background-color: var(--white);
+    }
+
+    .collection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .collection-card {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .collection-card.large {
+        grid-column: span 2;
+        height: 500px;
+    }
+
+    .collection-img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .collection-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,57,50,0.9), transparent);
+        padding: 2rem;
+        color: var(--white);
+    }
+
+    .collection-overlay h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .collection-overlay p {
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+    }
+
+    /* Special Offers */
+    .special-offers {
+        padding: 4rem 0;
+        background-color: var(--secondary-light);
+        color: var(--white);
+    }
+
+    .offer-card {
+        background: linear-gradient(135deg, var(--secondary-light), var(--secondary-color));
+        color: var(--white);
+        border-radius: 10px;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .offer-content {
+        flex: 2;
+        padding-right: 2rem;
+    }
+
+    .offer-image {
+        flex: 1;
+    }
+
+    .offer-image img {
+        width: 100%;
+        border-radius: 5px;
+        border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .offer-tag {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .offer-content h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .countdown {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .countdown-item {
+        text-align: center;
+    }
+
+    .countdown-number {
+        background-color: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .countdown-label {
+        font-size: 0.7rem;
+        opacity: 0.8;
+        margin-top: 0.3rem;
+    }
+
+    /* Payment Methods */
+    .payment-methods {
+        padding: 3rem 0;
+        background-color: var(--white);
+    }
+
+    .payment-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .payment-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100px;
+    }
+
+    .payment-icon {
+        width: 60px;
+        height: 60px;
+        background-color: var(--bg-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 0.5rem;
+    }
+
+    .payment-icon i {
+        font-size: 1.8rem;
+        color: var(--secondary-color);
+    }
+
+    .payment-name {
+        font-size: 0.8rem;
+        color: var(--text-light2);
+    }
+
+    /* Testimonials */
+    .testimonials {
+        padding: 4rem 0;
+        background-color: var(--bg-light);
+    }
+
+    .testimonial-scroll {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 2rem;
+        padding: 1rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .testimonial-card {
+        flex: 0 0 auto;
+        width: 350px;
+        scroll-snap-align: start;
+        background: var(--white);
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .testimonial-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid var(--accent-color);
+    }
+
+    .testimonial-text {
+        font-style: italic;
+        color: var(--text-medium);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .testimonial-author {
+        font-weight: 700;
+        color: var(--secondary-color);
+    }
+
+    .testimonial-rating {
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Cart Notification */
+    .cart-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: var(--secondary-color);
+        color: var(--white);
+        padding: 1rem 1.5rem;
+        border-radius: 5px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .cart-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .cart-notification i {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .hero {
+            flex-direction: column;
+            padding: 2rem 1rem;
+        }
+
+        .hero-content {
+            order: 2;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .hero-image {
+            order: 1;
+            width: 100%;
+        }
+
+        .hero p {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            justify-content: center;
+        }
+
+        .offer-card {
+            flex-direction: column;
+        }
+
+        .offer-content {
+            padding-right: 0;
+            margin-bottom: 2rem;
+        }
+
+        .collection-card.large {
+            grid-column: span 1;
+            height: 400px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 2.2rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.8rem;
+        }
+
+        .btn-outline {
+            margin-left: 0;
+            margin-top: 1rem;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .countdown {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero {
+            min-height: auto;
+            padding-top: 1rem;
+        }
+
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.5rem;
+        }
+
+        .section-title h2::after {
+            bottom: -5px;
+            height: 2px;
+            width: 50px;
+        }
+
+        .collection-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-grid {
+            gap: 1rem;
+        }
+
+        .payment-item {
+            width: 80px;
+        }
+
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>{{ site_config.hero_title }}</h1>
+        <p>{{ site_config.hero_description }}</p>
+        <div class="hero-buttons">
+            <a href="{{ site_config.hero_button_link }}" class="btn">{{ site_config.hero_button_text }}</a>
+            <a href="{{ site_config.secondary_button_link }}" class="btn btn-outline">{{ site_config.secondary_button_text }}</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <img src="{{ site_config.hero_image.url }}" alt="Betegna Ethiopian Collections">
+    </div>
+</section>
+
+<!-- New Collections Section -->
+<section class="new-collections">
+    <div class="section-title">
+        <h2>{% trans "New Arrivals" %}</h2>
+    </div>
+    <div class="collection-grid">
+        {% for collection in featured_collections %}
+        <div class="collection-card {% if forloop.first %}large{% endif %}">
+            <img src="{{ collection.hero_image.url }}" alt="{{ collection.name }}" class="collection-img">
+            <div class="collection-overlay">
+                <h3>{{ collection.name }}</h3>
+                <p>{{ collection.description|truncatechars:100 }}</p>
+                <a href="{% url 'collection_detail' collection.slug %}" class="btn">View Collection</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Collections (Side-scrolling) -->
+<section class="scroll-section">
+    <div class="section-title">
+        <h2>Our Collections</h2>
+    </div>
+    <div class="scroll-container">
+        {% for collection in all_collections %}
+        <div class="scroll-item">
+            <div class="card">
+                <div class="card-img">
+                    <img src="{{ collection.hero_image.url }}" alt="{{ collection.name }}">
+                </div>
+                <div class="card-info">
+                    <h3>{{ collection.name }}</h3>
+                    <p>{{ collection.description|truncatechars:60 }}</p>
+                    <a href="{% url 'collection_detail' collection.slug %}" class="btn" style="display: block; text-align: center;">Browse</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Special Offers -->
+{% if special_offer %}
+<section class="special-offers">
+    <div class="offer-card">
+        <div class="offer-content">
+            <span class="offer-tag">Limited Time</span>
+            <h3>{{ special_offer.title }}</h3>
+            <p>{{ special_offer.description }}</p>
+            <div class="countdown">
+                <div class="countdown-item">
+                    <div class="countdown-number" id="days">00</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="hours">00</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="minutes">00</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+            </div>
+            <a href="{% url 'special_offer_detail' special_offer.id %}"  class="btn">Shop Now</a>
+        </div>
+        <div class="offer-image">
+            <img src="{{ special_offer.image.url }}" alt="{{ special_offer.title }}">
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products (Side-scrolling) -->
+<section class="scroll-section">
+    <div class="section-title">
+        <h2>Featured Products</h2>
+        {% if has_personalized %}
+        <div class="recommendation-badge"><p>Recommended for You</p></div>
+        {% endif %}
+        
+    </div>
+    <div class="scroll-container">
+        {% for product in featured_products %}
+        <div class="scroll-item">
+            <a href="{% url 'product_detail' product.slug %}" class="product-link" style="text-decoration: none;">
+            <div class="card">
+                <div class="card-img">
+                    {% if product.get_discount_percentage > 0 %}
+                    <span class="badge">Save {{ product.get_discount_percentage }}%</span>
+                    {% endif %}
+                    {% with product.images.all|first as featured_image %}
+                        {% if featured_image %}
+                            <img src="{{ featured_image.image.url }}" alt="{{ featured_image.alt_text }}">
+                        {% else %}
+                            <img src="{% static 'images/default-product.jpg' %}" alt="No image available">
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="card-info">
+                    <h3>{{ product.name }}</h3>
+                    <p>{{ product.description|truncatechars:100 }}</p>
+                    <div class="product-price" style="display: flex; justify-content: space-between; align-items: center;">
+                        {% if product.old_price %}
+                            <span style="text-decoration: line-through; color: var(--text-light2); margin-right: 0.5rem;" class="price" data-base="{{ product.old_price}}"> ${{ product.old_price }}</span>
+                        {% endif %}
+                        <span style="font-weight: bold; color: var(--secondary-color);" class="price" data-base="{{ product.price}}">${{ product.price |intcomma }}</span>
+                        <button class="add-to-cart" data-product-id="{{ product.id }}" style="background: none; border: none; color: var(--secondary-color); font-size: 1.5rem; cursor: pointer;">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Payment Methods -->
+<section class="payment-methods">
+    <div class="section-title">
+        <h2>Payment Options</h2>
+    </div>
+    <div class="payment-grid">
+        <div class="payment-item">
+            <div class="payment-icon">
+                <i class="fab fa-cc-visa"></i>
+            </div>
+            <span class="payment-name">Visa</span>
+        </div>
+        <div class="payment-item">
+            <div class="payment-icon">
+                <i class="fab fa-cc-mastercard"></i>
+            </div>
+            <span class="payment-name">Mastercard</span>
+        </div>
+        <div class="payment-item">
+            <div class="payment-icon">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <span class="payment-name">Telebirr</span>
+        </div>
+        <div class="payment-item">
+            <div class="payment-icon">
+                <i class="fas fa-university"></i>
+            </div>
+            <span class="payment-name">CBE</span>
+        </div>
+        <div class="payment-item">
+            <div class="payment-icon">
+                <i class="fab fa-cc-paypal"></i>
+            </div>
+            <span class="payment-name">PayPal</span>
+        </div>
+        <div class="payment-item">
+            <div class="payment-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <span class="payment-name">Cash</span>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials (Side-scrolling) -->
+<section class="testimonials">
+    <div class="section-title">
+        <h2>Customer Reviews</h2>
+    </div>
+    <div class="testimonial-scroll">
+        {% for testimonial in featured_testimonials %}
+        <div class="testimonial-card">
+            <div class="testimonial-rating">
+                {% for i in testimonial.get_star_rating %}
+                    <i class="fas fa-star"></i>
+                {% endfor %}
+                {% if testimonial.rating < 5 %}
+                    {% with remaining=5|subtract:testimonial.rating %}
+                        {% for i in remaining|times %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+            <p class="testimonial-text">"{{ testimonial.content }}"</p>
+            {% if testimonial.avatar %}
+            <img src="{{ testimonial.avatar.url }}" alt="{{ testimonial.customer_name }}" class="testimonial-avatar">
+            {% else %}
+            <img src="https://randomuser.me/api/portraits/{% if testimonial.customer_name|slice:':1'|lower in 'aeiou' %}women{% else %}men{% endif %}/{{ forloop.counter|add:30 }}.jpg" alt="{{ testimonial.customer_name }}" class="testimonial-avatar">
+            {% endif %}
+            <h4 class="testimonial-author">{{ testimonial.customer_name }}</h4>
+            <p class="testimonial-role">{{ testimonial.customer_location }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Cart Notification -->
+<div class="cart-notification" id="cartNotification">
+    <i class="fas fa-check-circle"></i>
+    <span>Item added to cart!</span>
+</div>
+
+<script>
+    // Cart notification functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize cart count from server
+        fetch('/cart/count/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.cart_count !== undefined) {
+                const cartCount = document.querySelector('.cart-count');
+                if(cartCount) {
+                    cartCount.textContent = data.cart_count;
+                }
+            }
+        });
+
+        // Add to cart buttons
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+                
+                fetch(`/cart/add/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        // Update cart count in navbar
+                        const cartCount = document.querySelector('.cart-count');
+                        if(cartCount) {
+                            cartCount.textContent = data.cart_count;
+                        }
+                        
+                        // Set cart count in sessionStorage for persistence
+                        sessionStorage.setItem('cartCount', data.cart_count);
+                        
+                        // Show notification
+                        const notification = document.getElementById('cartNotification');
+                        notification.querySelector('span').textContent = data.message;
+                        notification.classList.add('show');
+                        
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                        }, 3000);
+                    }
+                });
+            });
+        });
+
+        // Check sessionStorage for cart count on page load
+        const storedCartCount = sessionStorage.getItem('cartCount');
+        if(storedCartCount) {
+            const cartCount = document.querySelector('.cart-count');
+            if(cartCount) {
+                cartCount.textContent = storedCartCount;
+            }
+        }
+
+        // Update countdown timer for special offer
+        {% if special_offer %}
+        function updateCountdown() {
+            const now = new Date();
+            const endDate = new Date("{{ special_offer.end_date|date:'Y-m-d H:i:s' }}");
+            
+            const diff = endDate - now;
+            
+            if(diff <= 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+        }
+        
+        // Initialize countdown
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+        {% endif %}
+        
+        // Initialize scroll sections
+        const scrollSections = document.querySelectorAll('.scroll-container, .testimonial-scroll');
+        scrollSections.forEach(section => {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+            
+            section.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - section.offsetLeft;
+                scrollLeft = section.scrollLeft;
+                section.style.cursor = 'grabbing';
+                section.style.scrollBehavior = 'auto';
+            });
+            
+            section.addEventListener('mouseleave', () => {
+                isDown = false;
+                section.style.cursor = 'grab';
+            });
+            
+            section.addEventListener('mouseup', () => {
+                isDown = false;
+                section.style.cursor = 'grab';
+                section.style.scrollBehavior = 'smooth';
+            });
+            
+            section.addEventListener('mousemove', (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - section.offsetLeft;
+                const walk = (x - startX) * 2;
+                section.scrollLeft = scrollLeft - walk;
+            });
+            
+            // Touch events for mobile
+            section.addEventListener('touchstart', (e) => {
+                isDown = true;
+                startX = e.touches[0].pageX - section.offsetLeft;
+                scrollLeft = section.scrollLeft;
+                section.style.scrollBehavior = 'auto';
+            });
+            
+            section.addEventListener('touchend', () => {
+                isDown = false;
+                section.style.scrollBehavior = 'smooth';
+            });
+            
+            section.addEventListener('touchmove', (e) => {
+                if(!isDown) return;
+                const x = e.touches[0].pageX - section.offsetLeft;
+                const walk = (x - startX) * 2;
+                section.scrollLeft = scrollLeft - walk;
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends '../store/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .faq-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .category-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    
+    .category-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+    
+    .category-description {
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        opacity: 0.8;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .faq-accordion {
+        margin-bottom: 3rem;
+    }
+    
+    .faq-item {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .faq-item:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .faq-question {
+        padding: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        transition: background 0.2s ease;
+    }
+    
+    .faq-question:hover {
+        background: #fafafa;
+    }
+    
+    .faq-question h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0;
+        flex: 1;
+    }
+    
+    .faq-question .icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+        color: var(--accent-color);
+        transition: transform 0.3s ease;
+    }
+    
+    .faq-answer {
+        padding: 0 1.5rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+        background: #f9f9f9;
+    }
+    
+    .faq-answer-inner {
+        padding: 0 0 1.5rem;
+    }
+    
+    .faq-answer-content {
+        color: var(--text-dark);
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+    
+    .faq-updated {
+        font-size: 0.85rem;
+        color: var(--accent-color);
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .faq-updated i {
+        margin-right: 0.5rem;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--primary-color);
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        background: rgba(244, 182, 9, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .back-link:hover {
+        background: rgba(244, 182, 9, 0.2);
+        transform: translateX(-3px);
+    }
+    
+    .back-link i {
+        margin-right: 0.75rem;
+        transition: transform 0.2s ease;
+    }
+    
+    .back-link:hover i {
+        transform: translateX(-2px);
+    }
+    
+    /* Active state */
+    .faq-item.active .faq-question {
+        background: #f9f9f9;
+    }
+    
+    .faq-item.active .faq-question .icon {
+        transform: rotate(180deg);
+    }
+    
+    .faq-item.active .faq-answer {
+        max-height: 500px;
+        padding: 0 1.5rem 1.5rem;
+    }
+    
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-state p {
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        opacity: 0.7;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .category-title {
+            font-size: 2rem;
+        }
+        
+        .category-description {
+            font-size: 1rem;
+        }
+        
+        .faq-question {
+            padding: 1.25rem;
+        }
+        
+        .faq-question h3 {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .faq-detail-container {
+            padding: 1.5rem 0.5rem;
+        }
+        
+        .category-title {
+            font-size: 1.75rem;
+        }
+        
+        .back-link {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<div class="faq-detail-container">
+    <div class="category-header">
+        <h1 class="category-title">{{ category.name }}</h1>
+        {% if category.description %}
+        <p class="category-description">{{ category.description }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="faq-accordion">
+        {% if faqs %}
+            {% for faq in faqs %}
+            <div class="faq-item" x-data="{ open: {% if forloop.first %}true{% else %}false{% endif %} }" x-on:click="open = !open" :class="{ 'active': open }">
+                <div class="faq-question">
+                    <h3>{{ faq.question }}</h3>
+                    <div class="icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer" x-show="open" x-collapse>
+                    <div class="faq-answer-inner">
+                        <div class="faq-answer-content">
+                            {{ faq.answer|linebreaks }}
+                        </div>
+                        {% if faq.updated_at %}
+                        <div class="faq-updated">
+                            <i class="fas fa-clock"></i>
+                            Last updated: {{ faq.updated_at|date:"M d, Y" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-question-circle"></i>
+                <p>No questions found in this category.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="text-center">
+        <a href="{% url 'category_list' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to all categories
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}

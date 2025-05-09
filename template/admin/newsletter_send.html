@@ -1,0 +1,15 @@
+<!-- newsletter/templates/admin/newsletter_send.html -->
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1>Send Newsletter</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="submit-row">
+        <input type="submit" value="Send Test Email" name="_test">
+        <input type="submit" value="Send to All Subscribers" name="_sendall">
+    </div>
+</form>
+{% endblock %}

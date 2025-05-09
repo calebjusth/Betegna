@@ -1,0 +1,328 @@
+{% extends '../store/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 2rem 0;
+    }
+    
+    .category-card {
+        --card-height: 220px;
+        height: var(--card-height);
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+    }
+    
+    .category-card:hover::before {
+        opacity: 0.05;
+    }
+    
+    .card-content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 1.75rem;
+        z-index: 2;
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+    
+    .category-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(244, 182, 9, 0.1) 0%, rgba(0, 108, 95, 0.1) 100%);
+        color: var(--accent-color);
+        font-size: 1.25rem;
+    }
+    
+    .category-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+        transition: color 0.2s ease;
+    }
+    
+    .category-card:hover .category-title {
+        color: var(--primary-dark);
+    }
+    
+    .category-desc {
+        color: var(--text-dark);
+        opacity: 0.7;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .question-count {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 100px;
+        background: rgba(0, 108, 95, 0.08);
+        color: var(--accent-color);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .question-count i {
+        margin-right: 0.35rem;
+        font-size: 0.7rem;
+    }
+    
+    .view-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--primary-color);
+        font-size: 0.85rem;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateX(-5px);
+        transition: all 0.3s ease;
+    }
+    
+    .category-card:hover .view-link {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .view-link i {
+        margin-left: 0.35rem;
+        font-size: 0.8rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .category-card:hover .view-link i {
+        transform: translateX(3px);
+    }
+    
+    /* Hero section */
+    .faq-hero {
+        text-align: center;
+        padding: 3rem 0 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .faq-hero h1 {
+        font-size: 2.75rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+    
+    .faq-hero p {
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        opacity: 0.7;
+        margin-bottom: 2rem;
+    }
+    
+    /* Search bar */
+    .search-container {
+        max-width: 600px;
+        margin: 0 auto 3rem;
+        position: relative;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1rem 1.5rem 1rem 3.5rem;
+        border-radius: 100px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 25px rgba(244, 182, 9, 0.1);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-color);
+        opacity: 0.6;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .category-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .faq-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .faq-hero p {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="faq-container">
+    <div class="faq-hero">
+        <h1>{{ page_title }}</h1>
+        <p>Find instant answers to your questions in our carefully organized knowledge base</p>
+    </div>
+    
+    <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" placeholder="Search categories...">
+    </div>
+    
+    <div class="category-grid">
+        {% for category in categories %}
+        <a href="{% url 'category_detail' category.slug %}" class="category-card">
+            <div class="card-content">
+                <div class="card-header">
+                </div>
+                
+                <div>
+                    <h3 class="category-title">{{ category.name }}</h3>
+                    {% if category.description %}
+                    <p class="category-desc">{{ category.description|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    <span class="question-count">
+                        <i class="fas fa-question"></i>
+                        {{ category.faqs.count }} questions
+                    </span>
+                    <span class="view-link">
+                        View all <i class="fas fa-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enhanced search functionality
+        const searchInput = document.querySelector('.search-input');
+        const categoryCards = document.querySelectorAll('.category-card');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            categoryCards.forEach(card => {
+                const title = card.querySelector('.category-title').textContent.toLowerCase();
+                const desc = card.querySelector('.category-desc') ? 
+                    card.querySelector('.category-desc').textContent.toLowerCase() : '';
+                
+                if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+        
+        // Staggered entrance animation
+        anime.timeline({
+            easing: 'easeOutExpo',
+            duration: 800
+        })
+        .add({
+            targets: '.faq-hero h1',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            delay: 200
+        })
+        .add({
+            targets: '.faq-hero p',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            offset: '-=600'
+        }, '-=800')
+        .add({
+            targets: '.search-container',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            offset: '-=600'
+        }, '-=800')
+        .add({
+            targets: '.category-card',
+            opacity: [0, 1],
+            translateY: [30, 0],
+            delay: anime.stagger(100),
+            offset: '-=400'
+        }, '-=800');
+        
+        // Add hover effect to cards
+        categoryCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    });
+</script>
+
+{% endblock %}

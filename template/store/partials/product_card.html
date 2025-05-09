@@ -1,0 +1,102 @@
+<div class="product-card">
+    <a href="{% url 'product_detail' product.slug %}">
+        <div class="product-media">
+            {% with product.images.all|first as image %}
+                <img src="{{ image.image.url }}" 
+                     alt="{{ image.alt_text|default:product.name }}" 
+                     class="product-image"
+                     loading="lazy">
+            {% endwith %}
+            
+            {% if product.get_discount_percentage > 0 %}
+                <span class="product-badge">-{{ product.get_discount_percentage }}% Off</span>
+            {% endif %}
+        </div>
+        
+        <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <div class="product-pricing">
+                <span class="price current-price" data-base="{{ product.price}}">${{ product.price }}</span>
+                {% if product.old_price %}
+                    <span class="price original-price" data-base="{{ product.old_price}}">${{ product.old_price }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </a>
+</div>
+
+<style>
+    /* Product Card Styles */
+.product-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.product-media {
+    position: relative;
+    padding-top: 100%;
+    overflow: hidden;
+}
+
+.product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--accent-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.product-info {
+    padding: 1rem;
+}
+
+.product-name {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.product-pricing {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.current-price {
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9rem;
+}
+</style>

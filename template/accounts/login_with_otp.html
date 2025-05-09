@@ -1,0 +1,47 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% block header %}
+<h2>OTP Verification</h2>
+<p class="text-muted">We'll send a code to your email</p>
+{% endblock %}
+
+{% block content %}
+<form method="post" class="mb-4">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-group">
+            <span class="input-group-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z"/>
+                </svg>
+            </span>
+            <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="your@email.com" required>
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-lg w-100 py-2 mb-3">
+        Send Verification Code
+    </button>
+    
+    <div class="text-center">
+        <p class="text-muted">The code will expire in 5 minutes</p>
+    </div>
+</form>
+
+<div class="d-flex align-items-center mb-4">
+    <hr class="flex-grow-1">
+    <span class="px-3 text-muted">or</span>
+    <hr class="flex-grow-1">
+</div>
+
+<a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg w-100 py-2">
+    Sign in with Password
+</a>
+
+<div class="auth-footer mt-4">
+    Don't have an account? <a href="{% url 'signup' %}">Create account</a>
+</div>
+{% endblock %}

@@ -1,0 +1,824 @@
+{% extends '../base.html' %}
+
+{% block content %}
+<div class="order-detail-container">
+    <!-- Order Header Section -->
+    <div class="order-header">
+        <div class="order-title">
+            <h1>Order #{{ order.order_number }}</h1>
+            <p class="order-date">Placed on {{ order.created_at|date:"F j, Y" }}</p>
+        </div>
+        <div class="order-status-badge">
+            <span class="status-badge 
+                {% if order.status == 'DELIVERED' %}delivered
+                {% elif order.status == 'CANCELLED' or order.status == 'REFUNDED' %}cancelled
+                {% elif order.status == 'SHIPPED' %}shipped
+                {% elif order.status == 'PROCESSING' %}processing
+                {% else %}pending{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="order-layout">
+        <!-- Main Order Content -->
+        <div class="order-main">
+            <!-- Order Progress Tracker -->
+            <div class="order-progress">
+                <div class="progress-steps">
+                    <div class="step {% if order.status == 'PROCESSING' or order.status == 'SHIPPED' or order.status == 'DELIVERED' %}completed{% endif %}">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                        </div>
+                        <div class="step-label">Order Confirmed</div>
+                    </div>
+                    <div class="step {% if order.status == 'SHIPPED' or order.status == 'DELIVERED' %}completed{% endif %}">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="step-label">Processing</div>
+                    </div>
+                    <div class="step {% if order.status == 'SHIPPED' or order.status == 'DELIVERED' %}completed{% endif %}">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="step-label">Shipped</div>
+                    </div>
+                    <div class="step {% if order.status == 'DELIVERED' %}completed{% endif %}">
+                        <div class="step-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="step-label">Delivered</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items Card -->
+            <div class="order-card">
+                <div class="card-header">
+                    <h3>Order Items ({{ order.items.count }})</h3>
+                </div>
+                <div class="card-body">
+                    {% for item in order.items.all %}
+                    <div class="order-item">
+                        <div class="item-image">
+                            <img src="{{ item.product.images.first.image.url }}" 
+                                 alt="{{ item.product.name }}" 
+                                 class="product-img">
+                        </div>
+                        <div class="item-details">
+                            <h4>{{ item.product.name }}</h4>
+                            <p class="item-sku">SKU: {{ item.product.sku }}</p>
+                            <div class="item-meta">
+                                <span class="item-price price" data-base="{{item.price}}">${{ item.price|floatformat:2 }}</span>
+                                <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <div class="item-total price" data-base="{{item.total_price}}">
+                            ${{ item.total_price|floatformat:2 }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <div class="order-summary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span class="price" data-base="{{order.total_price}}">${{ order.total_price|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Shipping</span>
+                            <span>Free</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total</span>
+                            <span class="price" data-base="{{order.total_price}}">${{ order.total_price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if order.customer_note %}
+            <div class="order-card">
+                <div class="card-header">
+                    <h3>Your Note</h3>
+                </div>
+                <div class="card-body">
+                    <div class="customer-note">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <p>{{ order.customer_note }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Order Sidebar -->
+        <div class="order-sidebar">
+            <!-- Shipping Information -->
+            <div class="order-card">
+                <div class="card-header">
+                    <h3>Shipping Information</h3>
+                </div>
+                <div class="card-body">
+                    {% with shipping=order.shipping_address_json %}
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <div>
+                            <h4>{{ shipping.name }}</h4>
+                            <p>{{ shipping.address }}</p>
+                            <p>{{ shipping.city }}, {{ shipping.postal_code }}</p>
+                            <p>{{ shipping.country }}</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <div>
+                            <p>Phone: {{ shipping.phone }}</p>
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            <div class="order-card">
+                <div class="card-header">
+                    <h3>Payment Information</h3>
+                </div>
+                <div class="card-body">
+                    {% with payment=order.payments.first %}
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        <div>
+                            <p><strong>Method:</strong> {{ payment.get_payment_type_display }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="payment-status 
+                                    {% if payment.status == 'COMPLETED' %}completed
+                                    {% elif payment.status == 'FAILED' %}failed
+                                    {% elif payment.status == 'PENDING' %}pending
+                                    {% else %}unknown{% endif %}">
+                                    {{ payment.get_status_display }}
+                                </span>
+                            </p>
+                            <p class="price" data-base="{{payment.amount}}"><strong>Amount:</strong> ${{ payment.amount|floatformat:2 }}</p>
+                            <p><strong>Date:</strong> {{ payment.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+
+            {% if order.tracking_number %}
+            <!-- Tracking Information -->
+            <div class="order-card">
+                <div class="card-header">
+                    <h3>Shipping Status</h3>
+                </div>
+                <div class="card-body">
+                    <div class="tracking-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"></path>
+                        </svg>
+                        <div>
+                            <p><strong>Tracking Number:</strong></p>
+                            <a href="{{ order.tracking_url }}" target="_blank" class="tracking-number">
+                                {{ order.tracking_number }}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                            <a href="{{ order.tracking_url }}" target="_blank" class="track-btn">
+                                Track Package
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Order Actions -->
+            <div class="order-actions">
+                <a href="{% url 'order_history' %}" class="btn back-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Back to Orders
+                </a>
+                {% if order.status == 'PROCESSING' %}
+                <button class="btn cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    Request Cancellation
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelOrderModalLabel">Request Order Cancellation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this order? If your order has already been processed, we may not be able to cancel it.</p>
+                <form id="cancelOrderForm" method="post" action="{% url 'cancel_order' order.order_number %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="cancelReason">Reason for cancellation</label>
+                        <textarea class="form-control" id="cancelReason" name="reason" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-cancel" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="cancelOrderForm" class="btn modal-confirm">Submit Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Base Styles */
+    .order-detail-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* Order Header */
+    .order-header {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .order-title h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--secondary-color);
+    }
+
+    .order-date {
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .order-status-badge {
+        margin-top: 1rem;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.delivered {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+
+    .status-badge.shipped {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+
+    .status-badge.processing {
+        background-color: rgba(241, 196, 15, 0.1);
+        color: #f1c40f;
+    }
+
+    .status-badge.pending {
+        background-color: rgba(149, 165, 166, 0.1);
+        color: #95a5a6;
+    }
+
+    .status-badge.cancelled {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+
+    /* Order Layout */
+    .order-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 992px) {
+        .order-layout {
+            flex-direction: row;
+        }
+        
+        .order-main {
+            flex: 2;
+        }
+        
+        .order-sidebar {
+            flex: 1;
+        }
+    }
+
+    /* Order Progress */
+    .order-progress {
+        margin-bottom: 2rem;
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        padding: 0 1rem;
+    }
+
+    .progress-steps::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #eee;
+        z-index: 1;
+    }
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        width: 25%;
+    }
+
+    .step-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .step.completed .step-icon {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+        text-align: center;
+        color: #999;
+    }
+
+    .step.completed .step-label {
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+
+    /* Order Card */
+    .order-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--secondary-color);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-footer {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    /* Order Items */
+    .order-item {
+        display: flex;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image {
+        flex: 0 0 80px;
+        margin-right: 1.25rem;
+    }
+
+    .product-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-details h4 {
+        font-size: 1rem;
+        margin: 0 0 0.25rem 0;
+        color: var(--text-dark);
+    }
+
+    .item-sku {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .item-total {
+        flex: 0 0 80px;
+        text-align: right;
+        font-weight: 600;
+        color: var(--secondary-color);
+    }
+
+    /* Order Summary */
+    .order-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .summary-row.total {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--secondary-color);
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* Customer Note */
+    .customer-note {
+        display: flex;
+        gap: 1rem;
+        background: #f9f9f9;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .customer-note svg {
+        flex: 0 0 24px;
+        color: var(--accent-color);
+    }
+
+    .customer-note p {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Info Items */
+    .info-item {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-item svg {
+        flex: 0 0 24px;
+        color: var(--accent-color);
+    }
+
+    .info-item h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    .info-item p {
+        margin: 0.25rem 0;
+        font-size: 0.95rem;
+        color: #555;
+    }
+
+    /* Payment Status */
+    .payment-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .payment-status.completed {
+        background: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+
+    .payment-status.pending {
+        background: rgba(241, 196, 15, 0.1);
+        color: #f1c40f;
+    }
+
+    .payment-status.failed {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+
+    .payment-status.unknown {
+        background: rgba(149, 165, 166, 0.1);
+        color: #95a5a6;
+    }
+
+    /* Tracking Info */
+    .tracking-info {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .tracking-info svg {
+        flex: 0 0 24px;
+        color: var(--accent-color);
+    }
+
+    .tracking-number {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: monospace;
+        background: #f5f5f5;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        margin: 0.5rem 0;
+        color: var(--secondary-color);
+        text-decoration: none;
+    }
+
+    .track-btn {
+        display: inline-block;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .track-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    /* Order Actions */
+    .order-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+
+    .back-btn {
+        background: white;
+        color: var(--secondary-color);
+        border: 1px solid #ddd;
+    }
+
+    .back-btn:hover {
+        background: #f9f9f9;
+        border-color: #ccc;
+    }
+
+    .cancel-btn {
+        background: white;
+        color: #e74c3c;
+        border: 1px solid #ffcdd2;
+    }
+
+    .cancel-btn:hover {
+        background: #ffebee;
+        border-color: #ef9a9a;
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        color: var(--secondary-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        transition: border 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        outline: none;
+    }
+
+    .modal-cancel {
+        background: white;
+        color: #666;
+        border: 1px solid #ddd;
+    }
+
+    .modal-confirm {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+
+    .modal-confirm:hover {
+        background: var(--primary-dark);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .order-title h1 {
+            font-size: 1.5rem;
+        }
+        
+        .order-status-badge {
+            margin-top: 1rem;
+        }
+        
+        .progress-steps {
+            padding: 0;
+        }
+        
+        .step-label {
+            font-size: 0.65rem;
+        }
+        
+        .order-item {
+            flex-direction: column;
+        }
+        
+        .item-image {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+        
+        .item-total {
+            text-align: left;
+            margin-top: 0.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .order-detail-container {
+            padding: 0 0.75rem;
+        }
+        
+        .card-header, .card-body, .card-footer {
+            padding: 1rem;
+        }
+        
+        .progress-steps::before {
+            display: none;
+        }
+        
+        .step {
+            width: auto;
+        }
+        
+        .step-icon {
+            width: 24px;
+            height: 24px;
+        }
+    }
+</style>
+
+<script>
+    // Simple animation for progress steps
+    document.addEventListener('DOMContentLoaded', function() {
+        const steps = document.querySelectorAll('.step.completed');
+        steps.forEach((step, index) => {
+            setTimeout(() => {
+                step.style.opacity = '1';
+            }, index * 200);
+        });
+    });
+</script>
+{% endblock %}

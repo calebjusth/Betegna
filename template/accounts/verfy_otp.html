@@ -1,0 +1,60 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% block header %}
+<h2>Verify Your Identity</h2>
+<p class="text-muted">Enter the 6-digit code sent to your email</p>
+{% endblock %}
+
+{% block content %}
+<form method="post" class="mb-4">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+        <label for="otp" class="form-label">Verification Code</label>
+        <div class="d-flex justify-content-center">
+            <input type="text" class="form-control form-control-lg text-center" 
+                   id="otp" name="otp" style="width: 200px; letter-spacing: 5px;" 
+                   maxlength="6" required>
+        </div>
+        <div class="text-center mt-2">
+            <small class="text-muted">Expires in <span id="countdown">5:00</span></small>
+        </div>
+        
+        <script>
+        let time = 300; // 5 minutes in seconds
+        const countdown = setInterval(() => {
+            const minutes = Math.floor(time / 60);
+            const seconds = time % 60;
+            document.getElementById('countdown').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            time--;
+            if (time < 0) clearInterval(countdown);
+        }, 1000);
+        </script>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-lg w-100 py-2 mb-3">
+        Verify Code
+    </button>
+    
+    <div class="text-center">
+        <a href="{% url 'login_with_otp' %}" class="text-decoration-none">
+            Didn't receive code? Resend
+        </a>
+    </div>
+</form>
+
+<div class="auth-footer text-center mt-4">
+    <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+        Back to Login
+    </a>
+</div>
+
+<script>
+    document.getElementById('otp').addEventListener('input', function(e) {
+        if (this.value.length === 6) {
+            this.form.submit();
+        }
+    });
+    </script>
+{% endblock %}

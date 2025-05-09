@@ -1,0 +1,834 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --light-gray: #f8f9fa;
+        --medium-gray: #e9ecef;
+        --dark-gray: #6c757d;
+        --white: #ffffff;
+        --black: #212529;
+        --danger: #ff4d6d;
+    }
+    
+    .cart-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .cart-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    
+    .cart-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--black);
+        margin-bottom: 0.5rem;
+    }
+    
+    .cart-header p {
+        color: var(--dark-gray);
+        font-size: 1.1rem;
+    }
+    
+    .cart-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+    }
+    
+    .cart-items {
+        display: grid;
+        gap: 1.5rem;
+    }
+    
+    .cart-item {
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+    }
+    
+    .cart-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cart-item-image {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
+    .cart-item-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    
+    .cart-item-details h3 {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        color: var(--black);
+    }
+    
+    .cart-item-price {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .quantity-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--medium-gray);
+        background: var(--white);
+        cursor: pointer;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .quantity-btn:hover {
+        background: var(--primary-color);
+        color: var(--white);
+        border-color: var(--primary-color);
+    }
+    
+    .remove-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: var(--dark-gray);
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: color 0.2s ease;
+        padding: 0.5rem;
+    }
+    
+    .remove-btn:hover {
+        color: var(--danger);
+    }
+    
+    .cart-item-total {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--black);
+        text-align: right;
+    }
+    
+    .cart-summary {
+        padding: 1.5rem;
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
+    }
+    
+    .cart-summary h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--black);
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--medium-gray);
+    }
+    
+    .summary-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .summary-total {
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .checkout-btn {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        margin-top: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .checkout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+    }
+    
+    .empty-cart {
+        text-align: center;
+        padding: 4rem 0;
+        grid-column: 1 / -1;
+    }
+    
+    .empty-cart h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: var(--black);
+    }
+    
+    .empty-cart p {
+        color: var(--dark-gray);
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .continue-shopping {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .continue-shopping:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+    }
+    
+    /* Recommendations Section */
+    .recommendations-section {
+        margin-top: 3rem;
+        grid-column: 1 / -1;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--black);
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .recommendation-item {
+        background: var(--white);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .recommendation-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .recommendation-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+    
+    .recommendation-details {
+        padding: 1rem;
+    }
+    
+    .recommendation-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        color: var(--black);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .recommendation-price {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .add-to-cart-btn {
+        display: block;
+        width: 100%;
+        padding: 0.5rem;
+        background: var(--white);
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    
+    .add-to-cart-btn:hover {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .cart-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .cart-summary {
+            position: static;
+        }
+        
+        .recommendations-grid {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .cart-item {
+            grid-template-columns: 80px 1fr;
+            grid-template-rows: auto auto;
+        }
+        
+        .cart-item-total {
+            grid-column: 2;
+            grid-row: 2;
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+        
+        .cart-header h1 {
+            font-size: 2rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .cart-item {
+            padding: 1rem;
+            gap: 1rem;
+        }
+        
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .cart-header {
+            margin-bottom: 2rem;
+        }
+        
+        .recommendations-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        
+        .recommendation-image {
+            height: 150px;
+        }
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1>Your Shopping Cart</h1>
+        <p>Review your items before checkout</p>
+    </div>
+    
+    {% if cart.items.all %}
+    <div class="cart-content">
+        <div class="cart-items">
+            {% for item in cart.items.all %}
+            <div class="cart-item {% if item.special_offer %}special-offer-item{% endif %}">
+                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="cart-item-image">
+                
+                <div class="cart-item-details">
+                    <h3>{{ item.product.name }}</h3>
+                    
+                    {% if item.special_offer %}
+                    <div class="special-offer-badge">
+                        <span class="badge bg-danger">
+                            {{ item.special_offer.discount_percentage }}% OFF
+                        </span>
+                        <small class="offer-title">{{ item.special_offer.title }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="price-container">
+                        {% if item.special_offer %}
+                        <div class="original-price">
+                            <del class="price" data-base="{{item.product.price}}">${{ item.product.price }}</del>
+                        </div>
+                        {% endif %}
+                        <div class="price cart-item-price" data-base="{{ item.unit_price }}">
+                            ${{ item.unit_price|floatformat:2 }}
+                        </div>
+                    </div>
+                    
+                    <form method="post" action="{% url 'update_cart_item' item.id %}" class="quantity-form">
+                        {% csrf_token %}
+                        <div class="quantity-controls">
+                            <button type="submit" name="action" value="decrease" class="quantity-btn">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span>{{ item.quantity }}</span>
+                            <button type="submit" name="action" value="increase" class="quantity-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="price-container">
+                    <div class="price cart-item-total" data-base="{{item.total_price}}">
+                        ${{ item.total_price|floatformat:2 }}
+                    </div>
+                    {% if item.savings > 0 %}
+                    <div class="savings-badge">
+                        <small class="text-success">Saved ${{ item.savings|floatformat:2 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <form method="post" action="{% url 'update_cart_item' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="remove" class="remove-btn" title="Remove item">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="cart-summary">
+            <h2>Order Summary</h2>
+            
+            <div class="summary-row">
+                <span>Subtotal ({{ cart.items.count }} items):</span>
+                <span class="price" data-base="{{ cart.subtotal }}">${{ cart.subtotal|floatformat:2 }}</span>
+            </div>
+            
+            {% if cart.total_discount > 0 %}
+            <div class="summary-row discount-row">
+                <span>Discounts Applied:</span>
+                <span class="text-success">-${{ cart.total_discount|floatformat:2 }}</span>
+            </div>
+            
+            <!-- Discount Breakdown -->
+            <div class="discount-breakdown">
+                {% for discount in cart.get_discount_summary %}
+                <div class="discount-item">
+                    <small>
+                        {{ discount.offer.title }} ({{ discount.offer.discount_percentage }}% off)
+                        <span class="text-success">-${{ discount.total_savings|floatformat:2 }}</span>
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>Calculated at checkout</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax:</span>
+                <span>Calculated at checkout</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Estimated Total:</span>
+                <span class="price" data-base="{{ cart.total_price }}">${{ cart.total_price|floatformat:2 }}</span>
+            </div>
+            
+            <a href="{% url 'checkout' %}" class="checkout-btn">
+                <i class="fas fa-lock"></i> Proceed to Checkout
+            </a>
+            
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <small style="color: var(--dark-gray);">
+                    <i class="fas fa-shield-alt"></i> Secure checkout
+                </small>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <h2>Your cart is empty</h2>
+        <p>Looks like you haven't added any items yet</p>
+        <a href="{% url 'all_products' %}" class="continue-shopping">
+            <i class="fas fa-arrow-left"></i> Continue Shopping
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- Special Offers Section -->
+    {% if active_special_offers %}
+    <div class="recommendations-section">
+        <h3 class="section-title">Special Offers You Might Like</h3>
+        <div class="recommendations-grid">
+            {% for offer in active_special_offers %}
+            <div class="offer-card">
+                <div class="offer-header">
+                    <span class="offer-badge">{{ offer.discount_percentage }}% OFF</span>
+                    <h4>{{ offer.title }}</h4>
+                </div>
+                <img src="{{ offer.image.url }}" alt="{{ offer.title }}" class="offer-image">
+                <div class="offer-details">
+                    <p>{{ offer.description|truncatewords:15 }}</p>
+                    <div class="offer-products">
+                        {% for product in offer.get_products_with_discounts|slice:":3" %}
+                        <div class="offer-product">
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="offer-product-image">
+                            <div class="offer-product-info">
+                                <span class="offer-product-name">{{ product.name }}</span>
+                                <div class="offer-product-price">
+                                    <del class="price" data-base="{{product.price}}">${{ product.price }}</del>
+                                    <span class="price" data-base="{{product.discounted_price}}">${{ product.discounted_price|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'special_offer_detail' offer.pk %}" class="view-offer-btn">
+                        View All {{ offer.products.count }} Items
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Regular Recommendations Section -->
+    <div class="recommendations-section">
+        <h3 class="section-title">You might also like</h3>
+        <div class="recommendations-grid">
+            {% for product in recommended_products %}
+            <div class="recommendation-item">
+                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="recommendation-image">
+                <div class="recommendation-details">
+                    <h4 class="recommendation-title">{{ product.name }}</h4>
+                    <div class="price recommendation-price" data-base="{{product.price}}">${{ product.price }}</div>
+                    <form method="post" action="{% url 'add_to_cart' product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="add-to-cart-btn">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Special Offer Item Styling */
+    .special-offer-item {
+        border-left: 4px solid var(--danger);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .special-offer-item::after {
+        content: 'Special Offer';
+        position: absolute;
+        top: 10px;
+        right: -30px;
+        background: var(--danger);
+        color: white;
+        padding: 2px 30px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        transform: rotate(45deg);
+    }
+    
+    .special-offer-badge {
+        margin-bottom: 0.5rem;
+    }
+    
+    .special-offer-badge .badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .special-offer-badge .offer-title {
+        color: var(--danger);
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .price-container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .original-price {
+        font-size: 0.9rem;
+        color: var(--dark-gray);
+    }
+    
+    .savings-badge {
+        margin-top: 0.2rem;
+        text-align: right;
+    }
+    
+    .discount-row {
+        color: var(--danger);
+        font-weight: 600;
+    }
+    
+    .discount-breakdown {
+        background: var(--light-gray);
+        padding: 0.8rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .discount-item {
+        margin-bottom: 0.3rem;
+    }
+    
+    .discount-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Special Offers Section */
+    .offer-card {
+        background: var(--white);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .offer-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .offer-header {
+        padding: 1rem;
+        background: linear-gradient(135deg, #ff4d6d, #ff758f);
+        color: white;
+        position: relative;
+    }
+    
+    .offer-badge {
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        background: var(--black);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .offer-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .offer-image {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+    
+    .offer-details {
+        padding: 1rem;
+    }
+    
+    .offer-details p {
+        font-size: 0.9rem;
+        color: var(--dark-gray);
+        margin-bottom: 1rem;
+    }
+    
+    .offer-products {
+        margin-bottom: 1rem;
+    }
+    
+    .offer-product {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .offer-product-image {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 0.5rem;
+    }
+    
+    .offer-product-info {
+        flex: 1;
+    }
+    
+    .offer-product-name {
+        font-size: 0.8rem;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .offer-product-price {
+        font-size: 0.8rem;
+    }
+    
+    .offer-product-price del {
+        color: var(--dark-gray);
+        margin-right: 0.3rem;
+    }
+    
+    .offer-product-price span {
+        color: var(--danger);
+        font-weight: 600;
+    }
+    
+    .view-offer-btn {
+        display: block;
+        text-align: center;
+        background: var(--light-gray);
+        color: var(--danger);
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .view-offer-btn:hover {
+        background: var(--danger);
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to cart items when they load
+    const cartItems = document.querySelectorAll('.cart-item');
+    cartItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+    
+    // Add click animation to buttons
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+    });
+    
+    // Highlight special offer items
+    const offerItems = document.querySelectorAll('.special-offer-item');
+    offerItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 4px 15px rgba(255, 77, 109, 0.2)';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
+        });
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to cart items when they load
+    const cartItems = document.querySelectorAll('.cart-item');
+    cartItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+    
+    // Add click animation to buttons
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+    });
+});
+</script>
+{% endblock %}

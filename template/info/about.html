@@ -1,0 +1,740 @@
+{% extends '../store/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background-color: #f9f9f9;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 0 10%;
+            margin-top: var(--nav-height);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            color: var(--secondary-color);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all var(--transition-speed);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            margin-left: 15px;
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .hero-image {
+            position: absolute;
+            right: 10%;
+            width: 50%;
+            max-width: 700px;
+            height: 80%;
+            background-image: url("{% static 'images/bgs/bg-image.png' %}");
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 20px;
+            transform: translateY(0);
+            transition: transform 0.5s ease-out;
+        }
+
+        /* Parallax Sections */
+        .section {
+            padding: 100px 10%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            display: inline-block;
+        }
+
+        .section-title h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background-color: var(--primary-color);
+            margin: 15px auto;
+        }
+
+        /* Creative Divider */
+        .divider {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+            background-color: var(--secondary-color);
+        }
+
+        .divider svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* About Section */
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-image {
+            flex: 1;
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .about-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1);
+            transition: transform 0.8s ease-out;
+        }
+
+        /* Features Section */
+        .features {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .features .section-title h2 {
+            color: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            border-radius: 15px;
+            transition: all var(--transition-speed);
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        .feature-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        /* Products Section */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .product-card {
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        .product-card.visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            height: 250px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.1);
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-category {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .product-price {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* Stats Section */
+        .stats {
+            background-color: var(--accent-color);
+            color: white;
+            text-align: center;
+            padding: 80px 10%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .stat-item {
+            transform: translateY(30px);
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+
+        .stat-item.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            background-color: #f5f5f5;
+        }
+
+        .testimonial-slider {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .testimonial {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.6s ease;
+            position: absolute;
+            width: 100%;
+        }
+
+        .testimonial.active {
+            opacity: 1;
+            transform: scale(1);
+            position: relative;
+        }
+
+        .testimonial-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-style: italic;
+            color: var(--text-dark);
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .author-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .author-info h4 {
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        .author-info p {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .about-content {
+                flex-direction: column;
+            }
+            
+            .about-image {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 100px;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .hero-content {
+                margin-bottom: 50px;
+            }
+            
+            .hero-image {
+                position: relative;
+                right: auto;
+                width: 100%;
+                height: 400px;
+                margin-top: 30px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .section {
+                padding: 70px 5%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+            }
+            
+            .section-title h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animation Classes */
+        .animate {
+            transition: all 0.8s ease;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Parallax Effect */
+        .parallax {
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+</style>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+        <h1>Ethiopia's Premier Ecommerce Experience</h1>
+        <p>Discover authentic Ethiopian products, handcrafted with care and delivered with pride. Join thousands of satisfied customers across the country.</p>
+        <div>
+            <a href="#" class="btn">Shop Now</a>
+            <a href="#" class="btn btn-outline">Learn More</a>
+        </div>
+    </div>
+    <div class="hero-image" id="hero-image"></div>
+</section>
+
+<!-- Creative Divider -->
+<div class="divider">
+    <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="var(--primary-color)"></path>
+        <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" fill="var(--primary-color)"></path>
+        <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="var(--primary-color)"></path>
+    </svg>
+</div>
+
+<!-- About Section -->
+<section class="section" id="about">
+    <div class="section-title">
+        <h2>Our Ethiopian Heritage</h2>
+    </div>
+    <div class="about-content">
+        <div class="about-text fade-in">
+            <h3>Bringing Ethiopia to Your Doorstep</h3>
+            <p>Founded in Addis Ababa, Betegna is more than just an ecommerce platform - we're a celebration of Ethiopian craftsmanship, culture, and commerce. Our mission is to connect the world with the finest products Ethiopia has to offer.</p>
+            <p>From handwoven textiles to premium coffee, from traditional spices to modern Ethiopian fashion, we curate only the best for our discerning customers.</p>
+            <a href="#" class="btn" style="margin-top: 20px;">Discover Our Story</a>
+        </div>
+        <div class="about-image">
+            <img src="https://images.unsplash.com/photo-1559563458-527698bf5295?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Ethiopian Market" id="about-img">
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="section features" id="features">
+    <div class="section-title">
+        <h2>Why Choose Betegna</h2>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Secure Payments</h3>
+            <p>Bank-level encryption and multiple payment options including mobile money for your peace of mind.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h3>Nationwide Delivery</h3>
+            <p>Fast and reliable delivery to all major cities in Ethiopia with real-time tracking.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <h3>Authentic Products</h3>
+            <p>Direct from Ethiopian artisans and producers - guaranteed genuine and high quality.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h3>24/7 Support</h3>
+            <p>Our customer service team is available around the clock in Amharic and English.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section class="section" id="products">
+    <div class="section-title">
+        <h2>Featured Products</h2>
+    </div>
+    <div class="products-grid">
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Ethiopian Coffee">
+            </div>
+            <div class="product-info">
+                <p class="product-category">Premium Coffee</p>
+                <h3 class="product-title">Yirgacheffe Single Origin</h3>
+                <p class="product-price">ETB 450</p>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://images.unsplash.com/photo-1617634667039-8e4cb277ab46?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Ethiopian Textile">
+            </div>
+            <div class="product-info">
+                <p class="product-category">Handwoven Textiles</p>
+                <h3 class="product-title">Traditional Shema Scarf</h3>
+                <p class="product-price">ETB 850</p>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://images.unsplash.com/photo-1603569283847-aa295f0d016a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1528&q=80" alt="Ethiopian Spices">
+            </div>
+            <div class="product-info">
+                <p class="product-category">Spices & Herbs</p>
+                <h3 class="product-title">Berbere Spice Blend</h3>
+                <p class="product-price">ETB 320</p>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80" alt="Ethiopian Jewelry">
+            </div>
+            <div class="product-info">
+                <p class="product-category">Handcrafted Jewelry</p>
+                <h3 class="product-title">Silver Coptic Cross</h3>
+                <p class="product-price">ETB 1,250</p>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 50px;">
+        <a href="#" class="btn">View All Products</a>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats">
+    <div class="section-title">
+        <h2>Betegna in Numbers</h2>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number" id="stat1">0</div>
+            <div class="stat-label">Happy Customers</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat2">0</div>
+            <div class="stat-label">Ethiopian Sellers</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat3">0</div>
+            <div class="stat-label">Products Available</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat4">0</div>
+            <div class="stat-label">Cities Served</div>
+        </div>
+    </div>
+</section>
+<script>
+
+    // Hero image parallax effect
+    window.addEventListener('scroll', function() {
+        const heroImage = document.getElementById('hero-image');
+        const scrollValue = window.scrollY;
+        heroImage.style.transform = 'translateY(' + scrollValue * 0.5 + 'px)';
+    });
+
+    // About image parallax effect
+    window.addEventListener('scroll', function() {
+        const aboutImage = document.getElementById('about-img');
+        const scrollPosition = window.pageYOffset;
+        const aboutSection = document.getElementById('about');
+        const aboutOffset = aboutSection.offsetTop;
+        const aboutHeight = aboutSection.offsetHeight;
+        
+        if (scrollPosition > aboutOffset - window.innerHeight && scrollPosition < aboutOffset + aboutHeight) {
+            const progress = (scrollPosition - aboutOffset + window.innerHeight) / (aboutHeight + window.innerHeight);
+            aboutImage.style.transform = 'scale(' + (1 + progress * 0.1) + ')';
+        }
+    });
+
+    // Animate elements on scroll
+    function animateOnScroll() {
+        const elements = document.querySelectorAll('.fade-in, .feature-card, .product-card, .stat-item');
+        
+        elements.forEach(element => {
+            const elementPosition = element.getBoundingClientRect().top;
+            const screenPosition = window.innerHeight / 1.2;
+            
+            if (elementPosition < screenPosition) {
+                element.classList.add('visible');
+            }
+        });
+    }
+
+    window.addEventListener('scroll', animateOnScroll);
+    animateOnScroll(); // Run once on load
+
+    // Animate stats counting
+    function animateStats() {
+        const stat1 = document.getElementById('stat1');
+        const stat2 = document.getElementById('stat2');
+        const stat3 = document.getElementById('stat3');
+        const stat4 = document.getElementById('stat4');
+        
+        const target1 = 12500;
+        const target2 = 850;
+        const target3 = 3200;
+        const target4 = 15;
+        
+        let count1 = 0;
+        let count2 = 0;
+        let count3 = 0;
+        let count4 = 0;
+        
+        const interval1 = setInterval(() => {
+            count1 += 100;
+            if (count1 > target1) {
+                count1 = target1;
+                clearInterval(interval1);
+            }
+            stat1.textContent = count1.toLocaleString();
+        }, 10);
+        
+        const interval2 = setInterval(() => {
+            count2 += 5;
+            if (count2 > target2) {
+                count2 = target2;
+                clearInterval(interval2);
+            }
+            stat2.textContent = count2.toLocaleString();
+        }, 10);
+        
+        const interval3 = setInterval(() => {
+            count3 += 20;
+            if (count3 > target3) {
+                count3 = target3;
+                clearInterval(interval3);
+            }
+            stat3.textContent = count3.toLocaleString();
+        }, 10);
+        
+        const interval4 = setInterval(() => {
+            count4 += 1;
+            if (count4 > target4) {
+                count4 = target4;
+                clearInterval(interval4);
+            }
+            stat4.textContent = count4;
+        }, 100);
+    }
+
+    // Testimonial slider
+    let currentTestimonial = 0;
+    const testimonials = document.querySelectorAll('.testimonial');
+    
+    function showTestimonial(index) {
+        testimonials.forEach(testimonial => {
+            testimonial.classList.remove('active');
+        });
+        testimonials[index].classList.add('active');
+        currentTestimonial = index;
+    }
+    
+    function nextTestimonial() {
+        currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+        showTestimonial(currentTestimonial);
+    }
+    
+    // Auto-rotate testimonials every 5 seconds
+    setInterval(nextTestimonial, 5000);
+    
+    // Initialize animations
+    window.addEventListener('load', function() {
+        animateStats();
+        showTestimonial(0);
+    });
+</script>
+{% endblock content %}
